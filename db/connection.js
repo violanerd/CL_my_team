@@ -9,7 +9,13 @@ const db = mysql.createConnection(
         // Your MYSQL password
         password: p, // enter your password here
         database: 'myteam'
-    },
-)
+    }
+);
+
+db.connect(err => {
+    if (err) throw err;
+    console.log('Database connected.');
+});
+
 
 module.exports = db;
