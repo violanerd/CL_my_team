@@ -1,5 +1,5 @@
 .DS_Store
-.helpers.js
+/db/helpers.js
 # Logs
 logs
 *.log
