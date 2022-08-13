@@ -31,3 +31,11 @@ UPDATE employee SET manager_id = ? WHERE id = ?;
 -- view employess by manager: 
 SELECT CONCAT(m.first_name, ' ', m.last_name) AS Manager, CONCAT(e.first_name, ' ', e.last_name) AS 'Employee'
 FROM employee e INNER JOIN employee m ON m.id = e.manager_id ORDER BY Manager;
+
+-- view employees by department
+SELECT department.name AS department_name, CONCAT(e.first_name, ' ', e.last_name) AS employee, role.title AS job_title
+FROM employee e LEFT JOIN role ON e.role_id = role.id LEFT JOIN department ON role.department_id = department.id ORDER BY department_name;
+
+ -- view total utilized budget of a department—the combined salaries of all employees in that department.
+SELECT department.name AS department_name, COUNT(role.title) AS 'jobs', SUM(role.salary) AS 'budget'
+FROM role JOIN department ON role.department_id = department.id GROUP BY department_name; 
