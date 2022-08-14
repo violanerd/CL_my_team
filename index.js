@@ -1,7 +1,7 @@
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const db = require('./db/connection');
-const [allEmployees, allRoles, allDepartments, viewByManager, viewByDepartment, viewBudget] = require('./queries');
+const [allEmployees, allRoles, allDepartments, viewByManager, viewByDepartment, viewBudget, insertDepartment, insertRole] = require('./queries');
 
 
 const choices = ['View All Employees', 
@@ -38,42 +38,55 @@ function getActivity () {
 
 
 function figureOutQuery(activity) {
+    let sql = ''; // should change this to default 
     switch(activity){
         case 'View All Employees':
-            sql = allEmployees;
+            queryDbwithResults(allEmployees);
             break;
         case 'View All Roles':
-            sql = allRoles;
+            queryDbwithResults(allRoles);
             break;
         case 'View All Employees By Department':
-            sql = viewByDepartment;
+            queryDbwithResults(viewByDepartment);
             break;
         case 'View All Employees By Manager': 
-            sql = viewByManager;
+            queryDbwithResults(viewByManager);
             break;
         case 'View All Departments':
-            sql = allDepartments;
+            queryDbwithResults(allDepartments);
             break;
         case 'View Total Uitlized Budget By Department':
-            sql = viewBudget;
+            queryDbwithResults(viewBudget);
             break;
-        // case 'Add Department':
-        // case 'Remove Department':
-        // case 'Add Employee':
+        case 'Add Department':
+            sql = insertDepartment;
+            inquirer.prompt([{
+                type: 'text',
+                name: 'departmentName',
+                message: "What is the name of the department?",
+                default: 'Restaurant'
+                    }]).then(({ departmentName }) => {
+                        let params = [departmentName];
+                        queryDbwithEdits(sql, params);
+                    });
+            break;    
+        case 'Add Role':
+            sql = insertRole;
+            getDept();  
+            break;
+        // case 'Remove Department':    
         // case 'Remove Employee':
         // case 'Update Employee Role':
         // case 'Update Employee Manager':
-        // case 'Add Role':
-        // 
+        // case 'Add Employee'
         default:
             console.log('Unable to find activity');
             db.end();
     }
-    queryDbwithResults(sql);
 }
 
 function queryDbwithResults(sql) {
-    db.query(sql, (err, rows) => {//input selected sql
+    db.query(sql, (err, rows) => {
     if (err) {
         console.log(err.message);
     }
@@ -81,5 +94,59 @@ function queryDbwithResults(sql) {
     getActivity();
     })
 };
+
+function queryDbwithEdits(sql, params) {
+    db.query(sql, params, (err, rows) => {
+    if (err) {
+        console.log(err.message);
+    }
+    console.table(rows);
+    getActivity();
+    })
+};
+
+
+
+const sql1 = `SELECT name, id AS value FROM department`;
+//working choices array w/inquirer
+function getArray(sql) {
+    return new Promise((resolve, reject) => {
+        db.query(sql1, (err,res) => {
+            if (err){
+                return reject(err);
+            }
+            resolve(res); 
+        })
+    })
+}
+
+async function getDept () {
+    let params = [];
+    let choices = await getArray(sql1);
+    inquirer.prompt([{
+        type: 'text',
+        name: 'roleName',
+        message: "What is the name of the role?",
+        default: 'Server'
+        },
+        {
+        type: 'number',
+        name: 'salary',
+        message: "What is the salary of the role?",
+        default: '25000'
+        },
+        {
+        type: 'list',
+        name: 'department',
+        message: "What department does the role belong to?",
+        choices: choices
+    }])
+    .then(({ roleName, salary, department }) => {
+        params.push(roleName, salary, department); 
+        console.log('params', params); 
+        return(params);
+    }).then( params => queryDbwithEdits(insertRole, params))
+    }
+
 
 getActivity();

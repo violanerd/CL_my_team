@@ -14,4 +14,14 @@ FROM employee e LEFT JOIN role ON e.role_id = role.id LEFT JOIN department ON ro
 
 const viewBudget = `SELECT department.name AS department_name, COUNT(role.title) AS 'jobs', SUM(role.salary) AS 'budget'
 FROM role JOIN department ON role.department_id = department.id GROUP BY department_name`;
-module.exports = [allEmployees, allRoles, allDepartments, viewByManager, viewByDepartment, viewBudget];
+
+const insertDepartment = `INSERT INTO department (name) VALUES (?)`;
+const insertRole = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
+module.exports = [allEmployees, 
+    allRoles, 
+    allDepartments, 
+    viewByManager, 
+    viewByDepartment, 
+    viewBudget, 
+    insertDepartment,
+    insertRole];
