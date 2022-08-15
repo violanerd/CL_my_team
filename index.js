@@ -1,22 +1,23 @@
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const db = require('./db/connection');
-const [allEmployees, allRoles, allDepartments, viewByManager, viewByDepartment, viewBudget, insertDepartment, insertRole] = require('./queries');
+const [allEmployees, allRoles, allDepartments, viewByManager, viewByDepartment, viewBudget, insertDepartment, insertRole, insertEmployee, updateEmployeeRole, removeADepartment, removeARole,
+    removeAnEmployee] = require('./queries');
 
 
-const choices = ['View All Employees', 
+const choices = ['View All Employees',
 'View All Employees By Department',
-'View All Employees By Manager', 
-'Add Employee',
-'Remove Employee',
-'Update Employee Role',
-'Update Employee Manager',
-'View All Roles',
-'Add Role',
+'View All Employees By Manager',
+'View All Roles', 
 'View All Departments',
+'View Total Uitlized Budget By Department', 
 'Add Department',
+'Add Role',
+'Add Employee',
+'Update Employee Role',
+'Remove Employee',
+'Remove Role',
 'Remove Department',
-'View Total Uitlized Budget By Department',
 'Quit'];
 
 function getActivity () {
@@ -71,14 +72,23 @@ function figureOutQuery(activity) {
                     });
             break;    
         case 'Add Role':
-            sql = insertRole;
-            getDept();  
+            getNewDept();  
             break;
-        // case 'Remove Department':    
-        // case 'Remove Employee':
-        // case 'Update Employee Role':
-        // case 'Update Employee Manager':
-        // case 'Add Employee'
+        case 'Add Employee':
+            getNewEmployee();
+            break;
+        case 'Update Employee Role':
+            getNewEmployeeRole();
+            break;
+        case 'Remove Department':
+            removeDepartment();
+            break;    
+        case 'Remove Employee':
+            removeEmployee();
+            break;
+        case 'Remove Role':
+            removeRole();
+            break;
         default:
             console.log('Unable to find activity');
             db.end();
@@ -100,18 +110,23 @@ function queryDbwithEdits(sql, params) {
     if (err) {
         console.log(err.message);
     }
-    console.table(rows);
     getActivity();
     })
 };
 
 
-
+// gets departments as data I can use in inquirer
 const sql1 = `SELECT name, id AS value FROM department`;
+// gets roles as data I can use in inquirer
+const sql2 = `SELECT role.title AS name, role.id AS value FROM role JOIN department ON role.department_id = department.id`;
+//gets employees (managers) as data I can use in inquirer
+const sql3 = `SELECT CONCAT(employee.first_name, ' ', employee.last_name) AS name, employee.id AS value
+FROM employee`;
+
 //working choices array w/inquirer
 function getArray(sql) {
     return new Promise((resolve, reject) => {
-        db.query(sql1, (err,res) => {
+        db.query(sql, (err,res) => {
             if (err){
                 return reject(err);
             }
@@ -120,7 +135,7 @@ function getArray(sql) {
     })
 }
 
-async function getDept () {
+async function getNewDept () {
     let params = [];
     let choices = await getArray(sql1);
     inquirer.prompt([{
@@ -142,11 +157,114 @@ async function getDept () {
         choices: choices
     }])
     .then(({ roleName, salary, department }) => {
-        params.push(roleName, salary, department); 
-        console.log('params', params); 
+        params.push(roleName, salary, department);
         return(params);
-    }).then( params => queryDbwithEdits(insertRole, params))
-    }
+    }).then(params => queryDbwithEdits(insertRole, params))
+}
+
+
+async function getNewEmployee () {
+    let params = [];
+    let roles = await getArray(sql2);
+    let managers = await getArray(sql3);
+    managers.push({name: 'None', value: null });
+    inquirer.prompt([
+        {
+            type: 'text',
+            name: 'firstName',
+            message: "What is the employee's first name?",
+        },
+        {
+            type: 'text',
+            name: 'lastName',
+            message: "What is the employee's last name?",
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: "What is the employee's role?",
+            choices: roles // an array of roles
+        },
+        {
+            type: 'list',
+            name: 'manager',
+            message: "Who is the employee's manager?",
+            choices: managers // an array of employees plus None val NULL
+        }
+    ]).then(({ firstName, lastName, role, manager }) => {
+        params.push(firstName, lastName, role, manager); 
+        return(params);
+    }).then(params => queryDbwithEdits(insertEmployee, params))
+}
+
+async function getNewEmployeeRole () {
+    let params = [];
+    let roles = await getArray(sql2);
+    let employees = await getArray(sql3);
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'employee',
+            message: "Which employee's role do you want to update?",
+            choices: employees
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: "Which role do you want to assign the selected employee?",
+            choices: roles // an array of roles
+        }
+    ]).then(({ employee, role }) => {
+        params.push(role, employee); 
+        return(params);
+    }).then(params => queryDbwithEdits(updateEmployeeRole, params))
+}
+
+async function removeDepartment () {
+    let params = [];
+    let choices = await getArray(sql1);
+    inquirer.prompt([
+        {
+        type: 'list',
+        name: 'department',
+        message: "What department would you like to remove?",
+        choices: choices
+    }])
+    .then(({ department }) => {
+        params.push(department); 
+        return(params);
+    }).then(params => queryDbwithEdits(removeADepartment, params))
+}
+async function removeRole () {
+    let params = [];
+    let choices = await getArray(sql2);
+    inquirer.prompt([
+        {
+        type: 'list',
+        name: 'role',
+        message: "What role would you like to remove?",
+        choices: choices
+    }])
+    .then(({ role }) => {
+        params.push(role); 
+        return(params);
+    }).then(params => queryDbwithEdits(removeARole, params))
+}
+async function removeEmployee () {
+    let params = [];
+    let choices = await getArray(sql3);
+    inquirer.prompt([
+        {
+        type: 'list',
+        name: 'employee',
+        message: "What employee would you like to remove?",
+        choices: choices
+    }])
+    .then(({ employee }) => {
+        params.push(employee); 
+        return(params);
+    }).then(params => queryDbwithEdits(removeAnEmployee, params))
+}
 
 
 getActivity();

@@ -17,6 +17,11 @@ FROM role JOIN department ON role.department_id = department.id GROUP BY departm
 
 const insertDepartment = `INSERT INTO department (name) VALUES (?)`;
 const insertRole = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
+const insertEmployee = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
+const updateEmployeeRole = `UPDATE employee SET role_id = ? WHERE id = ?`;
+const removeADepartment = `DELETE FROM department WHERE id = ?`;
+const removeARole = `DELETE FROM role WHERE id = ?`;
+const removeAnEmployee = `DELETE FROM employee WHERE id = ?`;
 module.exports = [allEmployees, 
     allRoles, 
     allDepartments, 
@@ -24,4 +29,9 @@ module.exports = [allEmployees,
     viewByDepartment, 
     viewBudget, 
     insertDepartment,
-    insertRole];
+    insertRole, 
+    insertEmployee, 
+    updateEmployeeRole, 
+    removeADepartment,
+    removeARole,
+    removeAnEmployee];
