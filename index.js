@@ -39,7 +39,7 @@ function getActivity () {
 
 
 function figureOutQuery(activity) {
-    let sql = ''; // should change this to default 
+    let sql = ''; 
     switch(activity){
         case 'View All Employees':
             queryDbwithResults(allEmployees);
@@ -65,7 +65,6 @@ function figureOutQuery(activity) {
                 type: 'text',
                 name: 'departmentName',
                 message: "What is the name of the department?",
-                default: 'Restaurant'
                     }]).then(({ departmentName }) => {
                         let params = [departmentName];
                         queryDbwithEdits(sql, params);
@@ -123,7 +122,7 @@ const sql2 = `SELECT role.title AS name, role.id AS value FROM role JOIN departm
 const sql3 = `SELECT CONCAT(employee.first_name, ' ', employee.last_name) AS name, employee.id AS value
 FROM employee`;
 
-//working choices array w/inquirer
+// promise db query to work with inquirer
 function getArray(sql) {
     return new Promise((resolve, reject) => {
         db.query(sql, (err,res) => {
@@ -142,13 +141,11 @@ async function getNewDept () {
         type: 'text',
         name: 'roleName',
         message: "What is the name of the role?",
-        default: 'Server'
         },
         {
         type: 'number',
         name: 'salary',
         message: "What is the salary of the role?",
-        default: '25000'
         },
         {
         type: 'list',
