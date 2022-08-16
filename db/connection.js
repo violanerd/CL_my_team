@@ -1,14 +1,15 @@
 const mysql = require('mysql2');
-const p = require('./helpers');
-const inquirer = require('inquirer');
 //connect to database
+
+require('dotenv').config();
+
 const db = mysql.createConnection(
     {
         host: 'localhost',
         // Your MySQL username,
-        user: 'root',
+        user: process.env.DB_USER,
         // Your MYSQL password
-        password: p, // enter your password here
+        password: process.env.DB_PASSWORD, 
         database: 'myteam'
     }
 );
