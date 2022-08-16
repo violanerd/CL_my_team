@@ -26,6 +26,8 @@
   Make sure to get the dependancies by running ```npm i```. Then to run the program, run ```npm start```. 
 
   To see the application demonstrated, watch the [walkthrough video](https://watch.screencastify.com/v/U6gG1OowyUHi1lEBbt7f).
+
+  ![](./CL_my_team.png)
   
   ## Questions
 
